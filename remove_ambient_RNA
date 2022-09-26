@@ -1,0 +1,141 @@
+---
+title: "Ambient RNA correction"
+author:
+    - "Single cell pre-processing pipeline"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+params:
+   rmd: "report.Rmd"
+output:
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+```{r}
+library(knitr)
+opts_knit$set(root.dir = snakemake@params$wd)
+```
+## Load packages
+```{r, warning = FALSE, message=FALSE}
+packages <- c("dplyr", "knitr", "ggplot2", "Rtsne", "cowplot", "Seurat", "limma", "tidyr", "DropletUtils", "SoupX")
+for (package in packages){
+    library(package, character.only = TRUE)
+}
+```
+
+# General overview of the data
+Load data and plot clusters
+```{r, warning=FALSE, message=FALSE}
+sc <- load10X(snakemake@params$input)
+dd <- sc$metaData
+mids <- aggregate(cbind(tSNE1,tSNE2) ~ clusters,data=dd,FUN=mean)
+
+ggplot(dd,aes(tSNE1,tSNE2)) + geom_point(aes(colour=factor(clusters)),size=0.2) + geom_label(data=mids,aes(label=clusters))
+```
+
+# Ambient RNA correction
+## Estimate rho, the contamination fraction
+```{r}
+sc = autoEstCont(sc)
+```
+
+## Correct the expression profile
+```{r, warning=FALSE, message=FALSE}
+out = adjustCounts(sc)
+```
+
+## Looking at changes in expression
+Looking at the fraction of cells that had non zero expression and that after the correction have zero expression
+```{r}
+cntSoggy <- rowSums(sc$toc > 0)
+cntStrained <- rowSums(out > 0)
+tail(sort((cntSoggy - cntStrained)/cntSoggy), n = 10)
+```
+
+# Plot expression of 5 genes most affected by correction - before correction
+```{r}
+difference_after_correction <- tail(sort(rowSums(sc$toc > out)/rowSums(sc$toc > 0)), n = 5)
+difference_after_correction
+```
+
+```{r}
+for (i in 1:length(difference_after_correction)){
+    gene <- names(difference_after_correction[i])
+    dd[[gene]] = sc$toc[gene, ]
+    plot(ggplot(dd, aes(tSNE1,tSNE2)) + geom_point(aes(colour = get(gene) > 0))+ ggtitle(paste0(gene, ": expression before correction")))
+}
+```
+
+# Plot ratio of observed to expected counts
+How many counts would be expected if that droplet were nothing but soup and compares that to the observed count.  
+If it's more than expected by change, it means that it is probably a true signal - the gene is expressed in those cells.  
+Black dots - cells with no expression for that gene  
+Red dots - the gene is expressed far more than expected by chance  
+Blue dots - the expression shown might be due to contamination and is not a true signal
+
+```{r}
+for (i in 1:length(difference_after_correction)){
+    gene <- names(difference_after_correction[i])
+    plot(plotMarkerMap(sc, gene))
+}
+```
+
+# Plot expression of 5 genes most affected by correction - after correction
+Comparing corrected/raw expression. Fraction of expression in each cell that has been deemed as soup and removed.  
+Visualise how the expression of a geneSet changes after soup correction.  
+
+```{r}
+for (i in 1:length(difference_after_correction)){
+    gene <- names(difference_after_correction[i])
+    plot(plotChangeMap(sc,out, gene))
+}
+```
+
+# Plot expression of 5 random genes before correction
+```{r}
+toc_dataframe <- data.frame(sc$toc)
+gene_names <- rownames(toc_dataframe)
+set.seed(1)
+sampled_genes <- sample(x = gene_names, size =5, replace = FALSE)
+```
+
+```{r}
+for (gene in sampled_genes){
+    dd[[gene]] = sc$toc[gene, ]
+    plot(ggplot(dd, aes(tSNE1,tSNE2)) + geom_point(aes(colour = get(gene) > 0))+ ggtitle(paste0(gene, ": expression before correction")))
+}
+```
+
+# Plot ratio of observed to expected counts
+How many counts would be expected if that droplet were nothing but soup and compares that to the observed count.  
+If it's more than expected by change, it means that it is probably a true signal - the gene is expressed in those cells.  
+Black dots - cells with no expression for that gene  
+Red dots - the gene is expressed far more than expected by chance  
+Blue dots - the expression shown might be due to contamination and is not a true signal
+```{r}
+for (gene in sampled_genes){
+    plot(plotMarkerMap(sc, gene))
+}
+```
+
+# Plot expression of the same 5 random genes after correction
+Comparing corrected/raw expression. Fraction of expression in each cell that has been deemed as soup and removed.  
+Visualise how the expression of a geneSet changes after soup correction.  
+```{r}
+for (gene in sampled_genes){
+    plot(plotChangeMap(sc,out, gene))
+}
+```
+
+# Save the results
+```{r}
+print(paste0("Saving results to 2_ambient_RNA_correction_data", snakemake@params$sample))
+dir.create(file.path(getwd(), "2_ambient_RNA_correction_data"), showWarnings = FALSE)
+path_to_save <- paste0("2_ambient_RNA_correction_data/", snakemake@params$sample)
+write10xCounts(path=path_to_save, out, version = "3")
+```
