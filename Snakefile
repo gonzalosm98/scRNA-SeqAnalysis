@@ -161,7 +161,7 @@ rule remove_ambient_RNA:
         input = "{samples}/outs/",
         sample = "{samples}"
     script:
-        'scripts/remove_ambient_RNA.Rmd'
+        'remove_ambient_RNA.Rmd'
 
 rule combine_cellranger_counter_metrics:
     """
@@ -175,7 +175,7 @@ rule combine_cellranger_counter_metrics:
     message:
         'Rule {rule} processing'
     script:
-        'scripts/combine_cellrange_counter_metrics.R'
+        'combine_cellrange_counter_metrics.R'
 
 rule get_mito_genes:
     """
@@ -221,7 +221,7 @@ rule QC:
     message:
         'Rule {rule} processing'
     notebook:
-        'scripts/QC_Scanpy.py.ipynb'
+        'QC_Scanpy.py.ipynb'
 
 
 rule remove_doublets:
@@ -241,7 +241,7 @@ rule remove_doublets:
         sample = "{samples}",
         scrub_threshold = lambda wildcards: set_scrub_treshold(wildcards) #treshold per sample defined in the configfile
     notebook:
-        'scripts/Doublet_removal.py.ipynb'
+        'Doublet_removal.py.ipynb'
 
 onsuccess:
     print("Workflow finished")
