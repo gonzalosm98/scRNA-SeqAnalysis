@@ -118,7 +118,7 @@ cellranger_count rule
 
 rule cellranger_count:
     input:
-        Ubicacion de los archivos fastqs
+        DATA_DIR
     output:
         expand("{{samples}}/outs/{counts_out}",counts_out = cellranger_count_outfiles),
         directory(expand("{{samples}}/outs/{counts_outdirs}",counts_outdirs = cellranger_count_outdirs)),
