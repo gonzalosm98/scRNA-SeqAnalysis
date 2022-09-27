@@ -1,6 +1,7 @@
 DATA: /path/to/data/dir
 OUTDIR: /path/to/outdir
 CELLRANGER_PATH: /path/to/<cellranger-6.1.2> # the name of the directory depends on the version you downloaded
+PREFIX: <species>
 # samples to condition
 units: /samples.tsv
 # Cell ranger count options 
