@@ -1,7 +1,8 @@
 DATA: /path/to/data/dir
 OUTDIR: /path/to/outdir
 CELLRANGER_PATH: /path/to/<cellranger-6.1.2> # the name of the directory depends on the version you downloaded
-
+# samples to condition
+units: /samples.tsv
 # Cell ranger count options 
 # https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/using/count#cr-count
 CR_COUNT_extra: ""
