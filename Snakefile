@@ -43,7 +43,7 @@ SCRUB_THRESHOLD = config['SCRUB_THRESHOLD']
 
 ###### GET SAMPLE NAMES FROM INPUT FILES ######
 
-    SAMPLES, REST, = glob_wildcards(os.path.join(DATA_DIR, "{samp}_S1_L00{1,2}_R{1,2}_001.fastq.gz"))
+    SAMPLES, REST, = glob_wildcards(os.path.join(/media/rafael/Elements/scBCRseq_Manuel/fasqs,//media/rafael/Elements/scBCRseq_Manuel/fasqs.... "{samp}_S1_L00{1,2}_R{1,2}_001.fastq"))
 
 
 # Create dictionary with sample names 
@@ -60,8 +60,13 @@ for el in SAMPLES:
             samples_dict[op[0]] = [op[1]]
     else:
         samples_dict[el] = [el]
+######  Otra posible opcion  ######
+units = pd.read_table(config["units"], dtype=str).set_index(["sample"], drop=False)
 
-
+# create lists containing the sample names and conditions
+SAMPLES = units.index.get_level_values('sample').unique().tolist()
+samples = pd.read_csv(config["units"], dtype=str,index_col=0,sep="\t")
+samplefile = config["units"]
 ###### Create lists with cellranger count output ######
 
 cellranger_count_outfiles = ["web_summary.html",
