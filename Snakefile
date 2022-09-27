@@ -27,7 +27,7 @@ DATA_DIR = config["DATA"]
 CELLRANGER_PATH = config["CELLRANGER_PATH"]
 PREFIX = config["PREFIX"]
 
-
+units = pd.read_table(config["units"], dtype=str).set_index(["sample"], drop=False)
 # Extra settings for cellranger count
 CR_COUNT_EXTRA = config["CR_COUNT_extra"]
 
@@ -40,33 +40,6 @@ ENSEMBLE_BIOMART_SPECIES = config["ENSEMBLE_BIOMART_SPECIES"] # ensembl biomart 
 # Doublet removal - threshold doublet score
 SCRUB_THRESHOLD = config['SCRUB_THRESHOLD']
 
-
-###### GET SAMPLE NAMES FROM INPUT FILES ######
-
-    SAMPLES, REST, = glob_wildcards(os.path.join(/media/rafael/Elements/scBCRseq_Manuel/fasqs,//media/rafael/Elements/scBCRseq_Manuel/fasqs.... "{samp}_S1_L00{1,2}_R{1,2}_001.fastq"))
-
-
-# Create dictionary with sample names 
-# If strings in SAMPLES are in a <sample>/<sample>.fastq format, the name of the directory ("sample") will be used as the sample name
-samples_dict = {}
-for el in SAMPLES:
-    if "/" in el: 
-    # if the string corresponds to directory/file.fastq.gz, split the string at the separator "/"
-        op = el.split("/")
-        # if the sample name op[0], the first element after the split, is already in the dictionary, add the 
-        if op[0] in samples_dict:
-            samples_dict[op[0]].append(op[1])
-        else:
-            samples_dict[op[0]] = [op[1]]
-    else:
-        samples_dict[el] = [el]
-######  Otra posible opcion  ######
-units = pd.read_table(config["units"], dtype=str).set_index(["sample"], drop=False)
-
-# create lists containing the sample names and conditions
-SAMPLES = units.index.get_level_values('sample').unique().tolist()
-samples = pd.read_csv(config["units"], dtype=str,index_col=0,sep="\t")
-samplefile = config["units"]
 ###### Create lists with cellranger count output ######
 
 cellranger_count_outfiles = ["web_summary.html",
@@ -123,7 +96,8 @@ cellranger_count rule
 
 rule cellranger_count:
     input:
-        DATA_DIR
+        r1=expand(config['units'] + "{sample}_R1_001.fastq", sample=sample_table['sample']),
+        r2=expand(config['units'] + "{sample}_R2_001.fastq", sample=sample_table['sample']),
     output:
         expand("{{samples}}/outs/{counts_out}",counts_out = cellranger_count_outfiles),
         directory(expand("{{samples}}/outs/{counts_outdirs}",counts_outdirs = cellranger_count_outdirs)),
