@@ -3,7 +3,7 @@ OUTDIR: /path/to/outdir
 CELLRANGER_PATH: /path/to/<cellranger-6.1.2> # the name of the directory depends on the version you downloaded
 PREFIX: <species>
 # samples to condition
-units: "samples.tsv"
+units: "/media/rafael/Elements/scBCRseq_Manuel/fastqs/AML/"
 # Cell ranger count options 
 # https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/using/count#cr-count
 CR_COUNT_extra: ""
