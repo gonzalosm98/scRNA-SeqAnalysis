@@ -5,7 +5,7 @@ from snakemake.utils import makedirs
 from pathlib import Path
 pipeline = "single-cell-data-processing"
 
-include: "rules/create_file_log.smk"
+include: "create_file_log.smk"
 
 ###### SET OUTDIR AND WORKDIR ######
 
@@ -96,8 +96,8 @@ cellranger_count rule
 
 rule cellranger_count:
     input:
-        r1=expand(config['units'] + "{sample}_R1_001.fastq", sample=sample_table['sample']),
-        r2=expand(config['units'] + "{sample}_R2_001.fastq", sample=sample_table['sample']),
+        r1=expand(config["units"] + "{sample}_R1_001.fastq", sample=sample_table["sample"]),
+        r2=expand(config["units"] + "{sample}_R2_001.fastq", sample=sample_table["sample"]),
     output:
         expand("{{samples}}/outs/{counts_out}",counts_out = cellranger_count_outfiles),
         directory(expand("{{samples}}/outs/{counts_outdirs}",counts_outdirs = cellranger_count_outdirs)),
