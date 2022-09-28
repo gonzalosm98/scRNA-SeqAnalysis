@@ -27,7 +27,7 @@ DATA_DIR = config["DATA"]
 CELLRANGER_PATH = config["CELLRANGER_PATH"]
 PREFIX = config["PREFIX"]
 
-units = pd.read_table(config["units"], dtype=str).set_index(["sample"], drop=False)
+sample_table = pd.read_table(samples.tsv, dtype=str).set_index(["sample"], drop=False)
 # Extra settings for cellranger count
 CR_COUNT_EXTRA = config["CR_COUNT_extra"]
 
